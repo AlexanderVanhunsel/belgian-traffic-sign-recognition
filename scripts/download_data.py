@@ -1,4 +1,3 @@
-"""Download and extract the BelgiumTS classification dataset."""
 import urllib.request
 import zipfile
 from pathlib import Path
