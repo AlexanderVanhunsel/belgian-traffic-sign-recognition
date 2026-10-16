@@ -1,0 +1,16 @@
+# Dataset (wordt gedownload met het script)
+data/
+
+# Virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+
+# Jupyter tijdelijke bestanden
+.ipynb_checkpoints/
+
+# Getrainde modellen en trainingslogs
+*.pt
+*.onnx
+runs/
