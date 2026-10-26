@@ -1,4 +1,3 @@
-"""Training loop for the baseline traffic sign CNN."""
 import argparse
 import json
 import time
@@ -13,11 +12,11 @@ from traffic_signs.splits import train_val_split
 
 
 def run_epoch(
-    model: nn.Module,
-    loader: DataLoader,
-    criterion: nn.Module,
-    device: torch.device,
-    optimizer: torch.optim.Optimizer | None = None,
+    model: nn.Module, #nn.module = base class for all NN.
+    loader: DataLoader, #Dataloader iterates over the dataset and returns batches of data.
+    criterion: nn.Module, #criterion has type nn.Module which has the loss function for training the model.
+    device: torch.device, #device has type torch.device which specifies the device to run the model on.
+    optimizer: torch.optim.Optimizer | None = None, #.optim contains optim. algorithms and Optimizer is the base class for all optimizers.
 ) -> tuple[float, float]:
     """Run one epoch. Pass an optimizer to train; omit it to only evaluate.
 
@@ -30,7 +29,7 @@ def run_epoch(
     total_correct = 0
     total_samples = 0
 
-    with torch.set_grad_enabled(is_training):
+    with torch.set_grad_enabled(is_training): #set.grad_enabled enables or disables gradient calculation.
         for images, labels in loader:
             images, labels = images.to(device), labels.to(device)
 
@@ -38,9 +37,9 @@ def run_epoch(
             loss = criterion(outputs, labels)
 
             if is_training:
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
+                optimizer.zero_grad() #zero_grad() sets the gradients of all optimized torch.Tensor s to zero. This is because by default, gradients are accumulated in buffers (i.e., not overwritten) whenever .backward() is called.
+                loss.backward() 
+                optimizer.step() #.step() updates parameters.
 
             batch_size = labels.size(0)
             total_loss += loss.item() * batch_size
