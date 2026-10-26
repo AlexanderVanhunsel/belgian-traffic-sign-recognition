@@ -1,5 +1,6 @@
 import torch
 
+from traffic_signs.model import TrafficSignCNN
 from traffic_signs.splits import train_val_split
 from traffic_signs.train import train_model
 
@@ -8,6 +9,7 @@ def test_train_model_runs_and_saves_checkpoint(fake_belgiumts, tmp_path):
     train_ds, val_ds = train_val_split(fake_belgiumts, val_fraction=0.2, image_size=32)
 
     history = train_model(
+        TrafficSignCNN(),
         train_ds,
         val_ds,
         device=torch.device("cpu"),

@@ -1,3 +1,4 @@
+"""Training loop for a traffic sign classifier. Works with any model (see model.py, resnet.py)."""
 import argparse
 import json
 import time
@@ -12,11 +13,11 @@ from traffic_signs.splits import train_val_split
 
 
 def run_epoch(
-    model: nn.Module, #nn.module = base class for all NN.
-    loader: DataLoader, #Dataloader iterates over the dataset and returns batches of data.
-    criterion: nn.Module, #criterion has type nn.Module which has the loss function for training the model.
-    device: torch.device, #device has type torch.device which specifies the device to run the model on.
-    optimizer: torch.optim.Optimizer | None = None, #.optim contains optim. algorithms and Optimizer is the base class for all optimizers.
+    model: nn.Module,
+    loader: DataLoader,
+    criterion: nn.Module,
+    device: torch.device,
+    optimizer: torch.optim.Optimizer | None = None,
 ) -> tuple[float, float]:
     """Run one epoch. Pass an optimizer to train; omit it to only evaluate.
 
@@ -29,7 +30,7 @@ def run_epoch(
     total_correct = 0
     total_samples = 0
 
-    with torch.set_grad_enabled(is_training): #set.grad_enabled enables or disables gradient calculation.
+    with torch.set_grad_enabled(is_training):
         for images, labels in loader:
             images, labels = images.to(device), labels.to(device)
 
@@ -37,9 +38,9 @@ def run_epoch(
             loss = criterion(outputs, labels)
 
             if is_training:
-                optimizer.zero_grad() #zero_grad() sets the gradients of all optimized torch.Tensor s to zero. This is because by default, gradients are accumulated in buffers (i.e., not overwritten) whenever .backward() is called.
-                loss.backward() 
-                optimizer.step() #.step() updates parameters.
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
 
             batch_size = labels.size(0)
             total_loss += loss.item() * batch_size
@@ -50,6 +51,7 @@ def run_epoch(
 
 
 def train_model(
+    model: nn.Module,
     train_ds,
     val_ds,
     device: torch.device,
@@ -59,16 +61,21 @@ def train_model(
     num_workers: int = 0,
     output_dir: str | Path = "runs/baseline_cnn",
 ) -> dict:
-    """Train a TrafficSignCNN and save the best checkpoint. Returns the training history."""
+    """Train `model` and save its best checkpoint. Returns the training history.
+
+    Only parameters with requires_grad=True are optimized, so a model with a
+    frozen backbone (see resnet.py) only trains its unfrozen layers.
+    """
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=num_workers)
     val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
-    model = TrafficSignCNN().to(device)
+    model = model.to(device)
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    trainable_params = [p for p in model.parameters() if p.requires_grad]
+    optimizer = torch.optim.Adam(trainable_params, lr=lr)
 
     history = {"train_loss": [], "train_acc": [], "val_loss": [], "val_acc": []}
     best_val_acc = 0.0
@@ -119,7 +126,9 @@ def main() -> None:
     train_ds, val_ds = train_val_split(args.data_dir, val_fraction=args.val_fraction, seed=args.seed)
     print(f"Train: {len(train_ds)} images, Val: {len(val_ds)} images")
 
+    model = TrafficSignCNN()
     train_model(
+        model,
         train_ds,
         val_ds,
         device=device,
